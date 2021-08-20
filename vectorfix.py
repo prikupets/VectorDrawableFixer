@@ -7,9 +7,6 @@ INCORRECT_FILL_TYPE = 'android:fillType="evenOdd"'
 PATH_TAG = "path"
 TAG_ENDING = "/>"
 
-sys.argv.append('C:\\Users\\Gran\\Documents\\GitHub\\Tabukan\\app\\src\\main\\res-common\\drawables\\vector\\drawable')
-
-
 def fix_tag_fill_type(tag_content) -> str:
     if INCORRECT_FILL_TYPE in tag_content:
         tag_content = tag_content.replace(INCORRECT_FILL_TYPE, FILL_TYPE_FIX)
