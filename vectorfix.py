@@ -2,6 +2,7 @@ import sys
 import os
 
 ARG_RECURSIVELY = "-r"
+ANDROID_XMLNS = 'xmlns:android="http://schemas.android.com/apk/res/android'
 VECTOR_DRAWABLE_EXTENSION = ".xml"
 FILL_TYPE_FIX = 'android:fillType="evenOdd"'
 INCORRECT_FILL_TYPE = 'android:fillType="evenOdd"'
@@ -28,17 +29,20 @@ def fix_tag_fill_type(tag_content) -> str:
 
 def try_fix_file_fill_type(file_path) -> bool:
     def read_file():
-        with open(file_path, "r") as file_to_read:
+        with open(file_path, "r", encoding="utf-8") as file_to_read:
             return file_to_read.readlines()
 
     def save_file():
-        with open(file_path, "w") as file_to_write:
+        with open(file_path, "w", encoding="utf-8") as file_to_write:
             file_to_write.write(file_result_content)
 
     fixed_any = False
 
     file_lines = read_file()
     file_result_content = ''.join(file_lines)
+
+    if ANDROID_XMLNS not in file_result_content:
+        return False
 
     tag_start = -1
     line_index = -1
@@ -77,10 +81,10 @@ def fix_files(fixed_files, dir_path, recursively):
                 fix_files(fixed_files, file_path, recursively)
             continue
 
-        if VECTOR_DRAWABLE_EXTENSION not in file_name:
+        if not file_name.endswith(VECTOR_DRAWABLE_EXTENSION):
             continue
 
-        print(f"Fixing {file_name}")
+        print(f"Trying to fix {file_name}")
         if try_fix(file_path):
             fixed_files.append(file_name)
 
