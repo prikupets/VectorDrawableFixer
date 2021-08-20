@@ -1,11 +1,13 @@
 import sys
 import os
 
+ARG_RECURSIVELY = "-r"
 VECTOR_DRAWABLE_EXTENSION = ".xml"
 FILL_TYPE_FIX = 'android:fillType="evenOdd"'
 INCORRECT_FILL_TYPE = 'android:fillType="evenOdd"'
-PATH_TAG = "path"
+PATH_TAG = "<path"
 TAG_ENDING = "/>"
+
 
 def fix_tag_fill_type(tag_content) -> str:
     if INCORRECT_FILL_TYPE in tag_content:
@@ -13,6 +15,9 @@ def fix_tag_fill_type(tag_content) -> str:
 
     if FILL_TYPE_FIX not in tag_content:
         indent = tag_content[tag_content.rfind('\n'):tag_content.rfind("android")]
+        if '\n' not in indent:
+            indent += "\n"
+
         tag_content += f"{indent}{FILL_TYPE_FIX}"
 
     print(" [Result]:")
@@ -63,9 +68,26 @@ def try_fix(file_path) -> bool:
     return try_fix_file_fill_type(file_path)
 
 
+def fix_files(fixed_files, dir_path, recursively):
+    for file_name in os.listdir(dir_path):
+        file_path = dir_path + "/" + file_name
+
+        if os.path.isdir(file_path):
+            if recursively:
+                fix_files(fixed_files, file_path, recursively)
+            continue
+
+        if VECTOR_DRAWABLE_EXTENSION not in file_name:
+            continue
+
+        print(f"Fixing {file_name}")
+        if try_fix(file_path):
+            fixed_files.append(file_name)
+
+
 def validate_args():
     if len(sys.argv) <= 1:
-        print("Usage: python vectorfix.py vector_drawables_directory_path")
+        print("Usage: python vectorfix.py vector_drawables_directory_path (-r to do recursively)")
         exit(1)
 
     if not os.path.isdir(sys.argv[1]):
@@ -76,21 +98,10 @@ def validate_args():
 def main():
     validate_args()
     dir_path = sys.argv[1]
+    recursively = ARG_RECURSIVELY in sys.argv
 
     fixed_files = []
-    for file_name in os.listdir(dir_path):
-        file_path = dir_path + "/" + file_name
-
-        if not os.path.isfile(file_path):
-            continue
-
-        if VECTOR_DRAWABLE_EXTENSION not in file_name:
-            continue
-
-        print(f"Fixing {file_name}")
-        if try_fix(file_path):
-            fixed_files.append(file_name)
-
+    fix_files(fixed_files, dir_path, recursively)
     print(f"Fixed: {fixed_files}")
 
 
